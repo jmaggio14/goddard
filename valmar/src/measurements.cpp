@@ -34,7 +34,7 @@ void displayAndSave(Mat image, String image_name){
 /**
 * Takes a matrix and detects the 2 lines in the ibeam gap
 */
-Mat retrieveVerticalEdges(const Mat src_image, int threshold1 = 255, int threshold2=225, int vertical_size = 5) {
+Mat retrieveHorizontalEdges(const Mat src_image, int threshold1 = 255, int threshold2=225, int horizontal_size = 5) {
     register Mat working_image = src_image;
 #if defined DEBUG
     displayAndSave(src_image, "original.png");
@@ -55,13 +55,16 @@ Mat retrieveVerticalEdges(const Mat src_image, int threshold1 = 255, int thresho
     cout << "detected edges" << std::endl;
 #endif
 
-    //pulling out vertical edges 
-    Mat morph_kernel = getStructuringElement(MORPH_RECT, Size(vertical_size, 1));
+    //pulling out horizontal edges 
+    Mat morph_kernel = getStructuringElement(MORPH_RECT, Size(horizontal_size, 1));
     erode(working_image, working_image, morph_kernel, Point(-1,-1));
+    dilate(working_image, working_image, morph_kernel, Point(-1,-1));
+    erode(working_image, working_image, morph_kernel, Point(-1,-1));
+    
 
 #if defined DEBUG
-    displayAndSave(working_image, "vertical_edges.png");
-    cout << "vertical morphed" << std::endl;
+    displayAndSave(working_image, "horizontal_edges.png");
+    cout << "horizontal morphed" << std::endl;
 #endif
 
     return working_image;
@@ -109,7 +112,7 @@ Mat calculateRawDistances(const Mat src_image, int max_line_break = 50) {
     //Calculating distances
     if(lines.size() > 2){ //rejecting if there are more than two lines in this image
 #if defined DEBUG
-        //Instead of just closign, should we grab the two largest vertical lines?
+        //Instead of just closign, should we grab the two largest horizontal lines?
         cout << "more than 2 lines. computation is impossible" << std::endl;
 #endif
         distances.setTo(-1);
@@ -131,8 +134,8 @@ int main(int argc, char const *argv[])
         return EXIT_FAILURE;;
     }
 
-    Mat vertical_image = retrieveVerticalEdges(primary_src_image,225,255,5);
-    Mat raw_distances = calculateRawDistances(vertical_image);
+    Mat horizontal_image = retrieveHorizontalEdges(primary_src_image,225,255,5);
+    Mat raw_distances = calculateRawDistances(horizontal_image);
     cout << "raw_distances = " << std::endl << raw_distances << endl << "end of distance matrix"; 
     
     return EXIT_SUCCESS;;
